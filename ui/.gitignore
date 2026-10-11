@@ -1,0 +1,33 @@
+@'
+# Build output
+/build/
+/cmake-build-*/
+/out/
+
+# Dependencies and generated files
+node_modules/
+*.exe
+*.obj
+*.pdb
+*.ilk
+*.dll
+*.lib
+*.log
+
+# Local and editor files
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local backups
+/backup_before_android_integration/
+/backup_before_device_discovery/
+
+# Accidental entries
+/.mkdir
+/SilentlyContinue
+'@ | Set-Content -Path .gitignore -Encoding utf8

@@ -1,0 +1,24 @@
+﻿# Build output
+/build/
+/cmake-build-/
+/out/
+node_modules/
+*.exe
+*.obj
+*.pdb
+*.dll
+*.lib
+*.log
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+/backup_before_android_integration/
+/backup_before_device_discovery/
+/.mkdir
+/SilentlyContinue
+
+# Local backup copies
+*.before-*
+*.backup

@@ -1,0 +1,856 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NetPath | Real Network</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080d14;
+      --panel: #111a25;
+      --panel2: #0b121c;
+      --border: #263446;
+      --text: #eef5ff;
+      --muted: #91a8c4;
+      --blue: #56b5ff;
+      --green: #a5f36b;
+      --red: #ff7777;
+      --yellow: #ffd36b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: radial-gradient(ellipse at top, #142235, var(--bg) 65%);
+      color: var(--text);
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    button, input, select, textarea { font: inherit; }
+
+    button {
+      cursor: pointer;
+      border: 0;
+      border-radius: 9px;
+      padding: 12px 16px;
+      font-weight: 700;
+    }
+
+    button:disabled { opacity: .55; cursor: wait; }
+
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 22px 48px;
+    }
+
+    header { margin-bottom: 24px; }
+
+    h1 {
+      font-size: clamp(27px, 4vw, 38px);
+      margin: 0 0 10px;
+      letter-spacing: -.7px;
+    }
+
+    h2 { font-size: 17px; margin: 0 0 10px; }
+    h3 { font-size: 14px; margin: 0; }
+
+    p { color: var(--muted); line-height: 1.6; }
+    .subtitle { margin: 0; font-size: 14px; }
+    .note { font-size: 12px; margin: 7px 0 0; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, .95fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      min-width: 0;
+      background: linear-gradient(155deg, #131e2b, #0c131d);
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      padding: 21px;
+      box-shadow: 0 14px 40px #0002;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9px;
+      margin: 16px 0;
+    }
+
+    .stat {
+      padding: 14px 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel2);
+      min-width: 0;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 20px;
+      overflow-wrap: anywhere;
+    }
+
+    .map {
+      background: #0b121b;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 14px;
+      min-height: 300px;
+    }
+
+    .map-heading {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .map-heading small { color: var(--muted); font-size: 11px; }
+
+    #topology {
+      width: 100%;
+      height: 310px;
+      display: block;
+    }
+
+    .device-list {
+      display: grid;
+      gap: 9px;
+      margin-top: 13px;
+    }
+
+    .device {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid var(--border);
+      background: #0b121b;
+      border-radius: 11px;
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .device-icon {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: #182c40;
+      font-size: 20px;
+    }
+
+    .device-info { min-width: 0; flex: 1; }
+    .device-info strong { display: block; font-size: 13px; overflow-wrap: anywhere; }
+    .device-info small { color: var(--muted); display: block; margin-top: 5px; overflow-wrap: anywhere; }
+    .status { font-size: 10px; color: var(--yellow); text-align: right; }
+    .status.good { color: var(--green); }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 7px 10px;
+      color: var(--blue);
+      font-size: 11px;
+      margin: 7px 0 18px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      margin: 14px 0 8px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: #080e16;
+      color: var(--text);
+      padding: 12px;
+      border-radius: 9px;
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 2px #56b5ff22;
+    }
+
+    textarea { resize: vertical; min-height: 92px; }
+
+    .primary {
+      width: 100%;
+      margin-top: 12px;
+      background: var(--green);
+      color: #10200a;
+    }
+
+    .secondary {
+      background: #18283b;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 16px 0 8px;
+    }
+
+    .toolbar button { padding: 9px 12px; font-size: 12px; }
+
+    .message-status {
+      margin-top: 13px;
+      border: 1px solid var(--border);
+      background: #080e16;
+      border-radius: 10px;
+      padding: 13px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .message-status.success { color: var(--green); border-color: #3a6843; }
+    .message-status.error { color: var(--red); border-color: #704040; }
+
+    .network-list { display: grid; gap: 8px; margin-top: 12px; }
+
+    .network-item {
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 11px;
+      background: #0b121b;
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .network-item strong { display: block; margin-bottom: 5px; }
+    .network-item small { color: var(--muted); }
+
+    .activity {
+      margin-top: 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #080e16;
+      padding: 14px;
+    }
+
+    .activity h3 { margin-bottom: 10px; }
+    .activity-entry {
+      border-top: 1px solid #1b2939;
+      padding: 9px 0;
+      color: var(--muted);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .activity-entry:first-of-type { border-top: 0; }
+    .activity-entry time { color: var(--blue); margin-right: 8px; }
+    .empty { color: var(--muted); font-size: 12px; padding: 12px 0; }
+
+    footer { margin-top: 20px; color: var(--muted); font-size: 11px; }
+
+    @media (max-width: 820px) {
+      .layout { grid-template-columns: 1fr; }
+      .container { padding: 24px 14px; }
+    }
+
+    @media (max-width: 430px) {
+      .panel { padding: 15px; }
+      .stats { grid-template-columns: 1fr; }
+      .stat { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      .stat span { margin: 0; }
+      .stat strong { font-size: 16px; }
+      #topology { height: 260px; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <header>
+      <h1>NetPath | Real Network</h1>
+      <p class="subtitle">
+        Discover devices reported by Windows and send messages to compatible
+        NetPath receivers on your local network.
+      </p>
+      <p class="note">This dashboard does not simulate packet delivery or invent network links.</p>
+    </header>
+
+    <div class="layout">
+      <section class="panel">
+        <h2>Real network overview</h2>
+        <p class="note">Device entries come from the Windows network-neighbor table.</p>
+
+        <div class="stats">
+          <div class="stat">
+            <span>Discovered devices</span>
+            <strong id="deviceCount">—</strong>
+          </div>
+          <div class="stat">
+            <span>Network mode</span>
+            <strong>LAN</strong>
+          </div>
+          <div class="stat">
+            <span>Delivery</span>
+            <strong>TCP</strong>
+          </div>
+        </div>
+
+        <div class="map">
+          <div class="map-heading">
+            <h3>LAN device map</h3>
+            <small>Devices shown · links not inferred</small>
+          </div>
+          <svg id="topology" viewBox="0 0 520 310" role="img"
+               aria-label="Map of discovered network devices">
+            <text x="260" y="150" text-anchor="middle" fill="#91a8c4" font-size="13">
+              Waiting for device discovery…
+            </text>
+          </svg>
+        </div>
+
+        <div class="toolbar">
+          <h3>Discovered devices</h3>
+          <button id="refreshButton" class="secondary" type="button">↻ Refresh devices</button>
+        </div>
+        <div id="deviceList" class="device-list">
+          <div class="empty">Loading devices…</div>
+        </div>
+
+        <div class="toolbar">
+          <h3>Network interfaces</h3>
+          <small id="lastUpdated" class="note">Not updated yet</small>
+        </div>
+        <div id="networkList" class="network-list">
+          <div class="empty">Loading network information…</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Send a real message</h2>
+        <p class="note">
+          The backend connects to the selected IP on TCP port 5000 and expects
+          a DELIVERED acknowledgement.
+        </p>
+
+        <div class="pill"><span class="dot"></span> NO SIMULATED DESTINATIONS</div>
+
+        <form id="sendForm">
+          <label for="receiver">Discovered receiver</label>
+          <select id="receiver" required>
+            <option value="">Loading discovered devices…</option>
+          </select>
+          <p class="note">
+            A device must be reachable and run a compatible NetPath receiver
+            to receive a message.
+          </p>
+
+          <label for="message">Message</label>
+          <textarea id="message" maxlength="2000" required
+            placeholder="Type your message here…">Hello from NetPath!</textarea>
+
+          <button id="sendButton" class="primary" type="submit">
+            Send to device →
+          </button>
+        </form>
+
+        <div id="sendStatus" class="message-status" role="status" aria-live="polite">
+          Refresh devices, select a receiver, and send a message.
+        </div>
+
+        <div class="activity">
+          <h3>Recent activity</h3>
+          <div id="activityList">
+            <div class="empty">No activity yet.</div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      NetPath · Real device discovery · Local TCP messaging · Network changes
+      are checked automatically.
+    </footer>
+  </main>
+
+  <script>
+    "use strict";
+
+    const API = {
+      devices: "/api/devices",
+      network: "/api/network",
+      send: "/api/send"
+    };
+
+    const POLL_NETWORK_MS = 5000;
+    const POLL_DEVICES_MS = 15000;
+
+    const $ = (id) => document.getElementById(id);
+
+    let devices = [];
+    let currentFingerprint = "";
+    let deviceRequestInProgress = false;
+    let networkRequestInProgress = false;
+    let sendInProgress = false;
+    let activity = [];
+
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[char]);
+    }
+
+    function stateText(state) {
+      const states = {
+        0: "UNREACHABLE",
+        1: "REACHABLE",
+        2: "INCOMPLETE",
+        3: "PROBE",
+        4: "DELAY",
+        5: "STALE",
+        6: "PERMANENT",
+        7: "UNREACHABLE"
+      };
+
+      if (typeof state === "number" || /^\d+$/.test(String(state ?? ""))) {
+        const number = Number(state);
+        return states[number] || `STATE ${number}`;
+      }
+
+      return String(state ?? "UNKNOWN").toUpperCase();
+    }
+
+    function isBroadcastIP(ip) {
+      return typeof ip === "string" &&
+        (ip.endsWith(".255") || ip === "255.255.255.255");
+    }
+
+    function usableDevices(items) {
+      if (!Array.isArray(items)) return [];
+
+      const seen = new Set();
+
+      return items.filter((device) => {
+        if (!device || typeof device.ip !== "string") return false;
+        if (isBroadcastIP(device.ip)) return false;
+
+        // Do not include malformed IP addresses.
+        const octets = device.ip.split(".");
+        if (octets.length !== 4 ||
+            !octets.every(part => /^\d+$/.test(part) &&
+              Number(part) >= 0 && Number(part) <= 255)) {
+          return false;
+        }
+
+        // Skip duplicate IP entries.
+        if (seen.has(device.ip)) return false;
+        seen.add(device.ip);
+        return true;
+      });
+    }
+
+    function addActivity(message) {
+      activity.unshift({
+        time: new Date().toLocaleTimeString(),
+        message
+      });
+
+      activity = activity.slice(0, 8);
+
+      $("activityList").innerHTML = activity.length
+        ? activity.map(item => `
+            <div class="activity-entry">
+              <time>${escapeHTML(item.time)}</time>
+              ${escapeHTML(item.message)}
+            </div>
+          `).join("")
+        : '<div class="empty">No activity yet.</div>';
+    }
+
+    function setSendStatus(message, type = "") {
+      const box = $("sendStatus");
+      box.textContent = message;
+      box.className = "message-status" + (type ? " " + type : "");
+    }
+
+    function isLocalReceiverCandidate(device) {
+      // Windows neighbor entries do not prove that a receiver is listening.
+      // The user may still select any discovered unicast device.
+      return device && device.ip && !isBroadcastIP(device.ip);
+    }
+
+    function renderReceiverOptions() {
+      const select = $("receiver");
+      const previous = select.value;
+
+      const candidates = devices.filter(isLocalReceiverCandidate);
+
+      select.innerHTML = "";
+
+      if (!candidates.length) {
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "No devices discovered";
+        select.appendChild(option);
+        return;
+      }
+
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = "Select a discovered device…";
+      select.appendChild(placeholder);
+
+      candidates.forEach((device) => {
+        const option = document.createElement("option");
+        option.value = device.ip;
+        option.textContent =
+          `${device.name || "Unknown device"} — ${device.ip}`;
+        select.appendChild(option);
+      });
+
+      if (candidates.some(device => device.ip === previous)) {
+        select.value = previous;
+      }
+    }
+
+    function renderDeviceList() {
+      $("deviceCount").textContent = String(devices.length);
+
+      const container = $("deviceList");
+
+      if (!devices.length) {
+        container.innerHTML =
+          '<div class="empty">No usable unicast device entries were found. Try refreshing or check your Wi-Fi connection.</div>';
+        renderReceiverOptions();
+        renderTopology();
+        return;
+      }
+
+      container.innerHTML = devices.map((device) => {
+        const state = stateText(device.state);
+        const reachable = state === "REACHABLE";
+
+        return `
+          <div class="device">
+            <div class="device-icon" aria-hidden="true">▣</div>
+            <div class="device-info">
+              <strong>${escapeHTML(device.name || "Unknown device")}</strong>
+              <small>IP: ${escapeHTML(device.ip)}</small>
+              <small>MAC: ${escapeHTML(device.mac || "Unknown")} · Interface: ${escapeHTML(device.interface || "Unknown")}</small>
+            </div>
+            <div class="status ${reachable ? "good" : ""}">
+              ${escapeHTML(state)}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      renderReceiverOptions();
+      renderTopology();
+    }
+
+    function renderTopology() {
+      const svg = $("topology");
+      const width = 520;
+      const height = 310;
+
+      if (!devices.length) {
+        svg.innerHTML = `
+          <text x="${width / 2}" y="${height / 2}"
+            text-anchor="middle" fill="#91a8c4" font-size="13">
+            No devices to display
+          </text>`;
+        return;
+      }
+
+      const visible = devices.slice(0, 12);
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const radiusX = Math.min(195, width * .38);
+      const radiusY = Math.min(112, height * .36);
+
+      const nodes = visible.map((device, index) => {
+        const angle = -Math.PI / 2 + (2 * Math.PI * index / visible.length);
+        const x = visible.length === 1 ? centerX : centerX + radiusX * Math.cos(angle);
+        const y = visible.length === 1 ? centerY : centerY + radiusY * Math.sin(angle);
+
+        const selected = $("receiver").value === device.ip;
+        const label = device.name || device.ip;
+        const shortLabel = label.length > 17 ? label.slice(0, 16) + "…" : label;
+
+        return `
+          <g>
+            <circle cx="${x}" cy="${y}" r="${selected ? 22 : 18}"
+              fill="${selected ? "#204d6e" : "#14283b"}"
+              stroke="${selected ? "#56b5ff" : "#43627f"}"
+              stroke-width="${selected ? 2 : 1.2}" />
+            <text x="${x}" y="${y + 4}" text-anchor="middle"
+              fill="#eef5ff" font-size="10">PC</text>
+            <text x="${x}" y="${y + 32}" text-anchor="middle"
+              fill="#d8e7f8" font-size="10">${escapeHTML(shortLabel)}</text>
+            <text x="${x}" y="${y + 45}" text-anchor="middle"
+              fill="#91a8c4" font-size="9">${escapeHTML(device.ip)}</text>
+          </g>`;
+      }).join("");
+
+      svg.innerHTML = `
+        <circle cx="${centerX}" cy="${centerY}" r="34"
+          fill="#0e1d2c" stroke="#28435b" stroke-dasharray="4 5"/>
+        <text x="${centerX}" y="${centerY - 3}" text-anchor="middle"
+          fill="#56b5ff" font-size="11" font-weight="600">LOCAL</text>
+        <text x="${centerX}" y="${centerY + 11}" text-anchor="middle"
+          fill="#91a8c4" font-size="9">NETWORK</text>
+        ${nodes}
+        ${devices.length > 12 ? `
+          <text x="${centerX}" y="${height - 8}" text-anchor="middle"
+            fill="#91a8c4" font-size="10">
+            Showing 12 of ${devices.length} devices
+          </text>` : ""}
+      `;
+    }
+
+    function renderNetworks(network) {
+      const container = $("networkList");
+      const interfaces = Array.isArray(network?.interfaces)
+        ? network.interfaces
+        : [];
+
+      if (!interfaces.length) {
+        container.innerHTML =
+          '<div class="empty">No network interfaces returned by the backend.</div>';
+        return;
+      }
+
+      container.innerHTML = interfaces.map((item) => `
+        <div class="network-item">
+          <strong>${escapeHTML(item.name || "Network interface")}</strong>
+          <div>IP: ${escapeHTML(item.ip || "Unknown")}</div>
+          <small>Network: ${escapeHTML(item.network || item.cidr || "Unknown")}</small>
+        </div>
+      `).join("");
+    }
+
+    async function fetchJSON(url, options = {}) {
+      const response = await fetch(url, {
+        cache: "no-store",
+        ...options,
+        headers: {
+          "Accept": "application/json",
+          ...(options.headers || {})
+        }
+      });
+
+      const text = await response.text();
+      let data;
+
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        throw new Error(`The server returned invalid JSON for ${url}.`);
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error || data.message ||
+          `HTTP ${response.status} while requesting ${url}`);
+      }
+
+      return data;
+    }
+
+    async function refreshDevices(showActivity = true) {
+      if (deviceRequestInProgress) return;
+      deviceRequestInProgress = true;
+
+      $("refreshButton").disabled = true;
+
+      try {
+        const data = await fetchJSON(API.devices);
+
+        // Supports the current { devices: [...], network: {...} } API shape.
+        if (!Array.isArray(data.devices)) {
+          throw new Error("The /api/devices response has no devices array.");
+        }
+
+        devices = usableDevices(data.devices);
+        if (data.network) {
+          const fingerprint = data.network.fingerprint || "";
+          if (currentFingerprint && fingerprint &&
+              currentFingerprint !== fingerprint) {
+            addActivity("Network configuration changed.");
+          }
+          currentFingerprint = fingerprint;
+          renderNetworks(data.network);
+        }
+
+        renderDeviceList();
+        $("lastUpdated").textContent =
+          "Updated " + new Date().toLocaleTimeString();
+
+        if (showActivity) {
+          addActivity(`Device discovery completed: ${devices.length} device(s).`);
+        }
+      } catch (error) {
+        $("deviceCount").textContent = "!";
+        $("deviceList").innerHTML =
+          `<div class="empty">${escapeHTML(error.message)}</div>`;
+        $("topology").innerHTML = `
+          <text x="260" y="150" text-anchor="middle"
+            fill="#ff7777" font-size="12">Device discovery failed</text>`;
+        $("receiver").innerHTML =
+          '<option value="">Discovery failed</option>';
+        if (showActivity) addActivity("Device discovery failed: " + error.message);
+      } finally {
+        deviceRequestInProgress = false;
+        $("refreshButton").disabled = false;
+      }
+    }
+
+    async function checkNetwork() {
+      if (networkRequestInProgress) return;
+      networkRequestInProgress = true;
+
+      try {
+        const network = await fetchJSON(API.network);
+        const nextFingerprint = network.fingerprint || "";
+
+        if (currentFingerprint &&
+            nextFingerprint &&
+            currentFingerprint !== nextFingerprint) {
+          currentFingerprint = nextFingerprint;
+          renderNetworks(network);
+          addActivity("Network changed. Refreshing discovered devices…");
+          await refreshDevices(false);
+        } else {
+          currentFingerprint = nextFingerprint || currentFingerprint;
+          renderNetworks(network);
+        }
+      } catch (error) {
+        // A failed network poll should not crash the dashboard.
+        console.warn("Network check failed:", error.message);
+      } finally {
+        networkRequestInProgress = false;
+      }
+    }
+
+    async function sendMessage(event) {
+      event.preventDefault();
+      if (sendInProgress) return;
+
+      const ip = $("receiver").value;
+      const message = $("message").value.trim();
+
+      if (!ip) {
+        setSendStatus("Select a discovered receiver first.", "error");
+        return;
+      }
+
+      if (!message) {
+        setSendStatus("Enter a message before sending.", "error");
+        return;
+      }
+
+      sendInProgress = true;
+      $("sendButton").disabled = true;
+      $("sendButton").textContent = "Sending…";
+      setSendStatus(`Connecting to ${ip}:5000…`);
+
+      try {
+        // The backend is responsible for TCP delivery and checking DELIVERED.
+        const result = await fetchJSON(API.send, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ip, message, port: 5000 })
+        });
+
+        const resultText = [
+          result.message,
+          result.status,
+          result.acknowledgement,
+          result.ack
+        ].filter(Boolean).join(" ");
+
+        const confirmed =
+          result.delivered === true ||
+          result.success === true ||
+          /DELIVERED/i.test(resultText);
+
+        if (confirmed) {
+          setSendStatus(
+            `Delivery confirmed to ${ip}:5000. ${resultText || "Receiver acknowledged the message."}`,
+            "success"
+          );
+          addActivity(`Message delivered to ${ip}:5000.`);
+        } else {
+          setSendStatus(
+            `The server responded, but delivery could not be confirmed. ${resultText || "Check the receiver and server response."}`,
+            "error"
+          );
+          addActivity(`Delivery not confirmed for ${ip}:5000.`);
+        }
+      } catch (error) {
+        setSendStatus(
+          `Message failed: ${error.message}. Confirm the receiver is running and listening on TCP port 5000.`,
+          "error"
+        );
+        addActivity(`Message failed for ${ip}: ${error.message}`);
+      } finally {
+        sendInProgress = false;
+        $("sendButton").disabled = false;
+        $("sendButton").textContent = "Send to device →";
+      }
+    }
+
+    $("refreshButton").addEventListener("click", () => refreshDevices(true));
+    $("sendForm").addEventListener("submit", sendMessage);
+    $("receiver").addEventListener("change", renderTopology);
+
+    // Initial load.
+    refreshDevices(true);
+    checkNetwork();
+
+    // Refresh the device list regularly.
+    setInterval(() => refreshDevices(false), POLL_DEVICES_MS);
+
+    // Detect interface/IP changes.
+    setInterval(checkNetwork, POLL_NETWORK_MS);
+  </script>
+</body>
+</html>
